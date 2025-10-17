@@ -1,0 +1,6 @@
+@KaryawanApi_HostAddress = http://localhost:5094
+
+GET {{KaryawanApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,69 @@
+﻿@page "/karyawan"
+@using KaryawanApp.BlazorHybrid.Entity
+@inject KaryawanService Service
+@inject NavigationManager navigationManager
+
+@code {
+    List<Karyawan> items = new();
+
+    string? loadError;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            items = await Service.GetAll();
+        }
+        catch (Exception ex)
+        {
+            loadError = ex.Message;
+            Console.WriteLine(loadError); // tampil di Output/Console DevTools
+        }
+    }
+
+    async Task Delete(string nik)
+    {
+        await Service.Delete(nik);
+        items = await Service.GetAll();
+    }
+
+    // >>> Handler navigasi (hindari kutip bertumpuk di markup)
+    void GoNew() => navigationManager.NavigateTo("/karyawan/new");
+    void GoDetail(string nik) => navigationManager.NavigateTo($"/karyawan/{nik}");
+    void GoEdit(string nik) => navigationManager.NavigateTo($"/karyawan/edit/{nik}");
+}
+
+<h3>Daftar Karyawan</h3>
+
+<button @onclick="GoNew">New</button>
+
+<table>
+    <thead>
+        <tr>
+            <th>NIK</th>
+            <th>Nama</th>
+            <th>Divisi</th>
+            <th>Jabatan</th>
+            <th>Telp</th>
+            <th>Alamat</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var k in items)
+        {
+            <tr>
+                <td>@k.NIK</td>
+                <td>@k.Nama</td>
+                <td>@k.Divisi</td>
+                <td>@k.Jabatan</td>
+                <td>@k.Telp</td>
+                <td>@k.Alamat</td>
+                <td>
+                    <button @onclick="() => GoDetail(k.NIK)">Detail</button>
+                    <button @onclick="() => GoEdit(k.NIK)">Edit</button>
+                    <button @onclick="() => Delete(k.NIK)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

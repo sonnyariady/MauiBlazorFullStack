@@ -1,0 +1,71 @@
+﻿@page "/karyawan/new"
+@page "/karyawan/edit/{Nik}"
+
+@using KaryawanApp.BlazorHybrid.Entity
+@inject KaryawanService Service
+@inject NavigationManager NavigationManager
+
+@code {
+    [Parameter] public string? Nik { get; set; }
+    Karyawan model = new();
+    bool IsEdit => !string.IsNullOrWhiteSpace(Nik);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsEdit)
+        {
+            var d = await Service.GetDetails(Nik!);
+            if (d is not null)
+            {
+                model.NIK = d.NIK;
+                model.Nama = d.Nama;
+                model.Divisi = d.Divisi;
+                model.Jabatan = d.Jabatan;
+                model.Alamat = d.Alamat;
+                model.Telp = d.Telp;
+            }
+        }
+    }
+
+    async Task Submit()
+    {
+        if (IsEdit) await Service.Update(Nik!, model);
+        else await Service.Create(model);
+
+        NavigationManager.NavigateTo("/karyawan");
+    }
+
+    void Cancel() => NavigationManager.NavigateTo("/karyawan");
+}
+
+<h3>@(IsEdit ? "Edit" : "New") Karyawan</h3>
+
+<EditForm Model="model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-grid">
+        <label for="nik">NIK</label>
+        <InputText id="nik" class="input" @bind-Value="model.NIK" disabled="@IsEdit" />
+
+        <label for="nama">Nama</label>
+        <InputText id="nama" class="input" @bind-Value="model.Nama" />
+
+        <label for="divisi">Divisi</label>
+        <InputText id="divisi" class="input" @bind-Value="model.Divisi" />
+
+        <label for="jabatan">Jabatan</label>
+        <InputText id="jabatan" class="input" @bind-Value="model.Jabatan" />
+
+        <label for="alamat">Alamat</label>
+        <InputText id="alamat" class="input" @bind-Value="model.Alamat" />
+
+        <label for="telp">Telp</label>
+        <InputText id="telp" class="input" @bind-Value="model.Telp" />
+    </div>
+
+    <div class="actions">
+        <button type="submit" class="btn-primary">Submit</button>
+        <button type="button" class="btn" @onclick="Cancel">Batal</button>
+    </div>
+</EditForm>

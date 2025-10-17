@@ -1,0 +1,85 @@
+@page "/karyawan"
+@using KaryawanBlazorApp.WebUI.Models
+@using MudBlazor
+@inject KaryawanBlazorApp.WebUI.Services.KaryawanApiClient Api
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IDialogService Dialog       
+
+<MudPaper Class="pa-4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h5">Karyawan</MudText>
+        <MudButton Variant="Variant.Filled" OnClick="@(() => Nav.NavigateTo("/karyawan/new"))">New</MudButton>
+    </MudStack>
+
+    <MudTable Items="@_items" Hover="true" Dense="true" Class="mt-4">
+        <HeaderContent>
+            <MudTh>NIK</MudTh>
+            <MudTh>Nama</MudTh>
+            <MudTh>Divisi</MudTh>
+            <MudTh>Jabatan</MudTh>
+            <MudTh>Telp</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.NIK</MudTd>
+            <MudTd>@context.Nama</MudTd>
+            <MudTd>@context.Divisi</MudTd>
+            <MudTd>@context.Jabatan</MudTd>
+            <MudTd>@context.Telp</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                               Size="Size.Small"
+                               OnClick="@(()=> Nav.NavigateTo($"/karyawan/detail/{context.NIK}"))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Size="Size.Small"
+                               OnClick="@(()=> Nav.NavigateTo($"/karyawan/edit/{context.NIK}"))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Size="Size.Small" Color="Color.Error"
+                               OnClick="@(()=> ConfirmDelete(context))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<Karyawan> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await Api.GetAllAsync();
+        if (res.IsSuccess && res.Data is not null) _items = res.Data;
+        else Snackbar.Add(res.ErrorMessage ?? $"Error: {(int)res.StatusCode}", Severity.Error);
+    }
+
+    private async Task ConfirmDelete(Karyawan k)
+    {
+        // [ADDED] tampilkan dialog konfirmasi
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Yakin ingin menghapus karyawan {k.Nama} (NIK {k.NIK})?" },
+            { "ButtonText", "Hapus" },
+            { "Color", Color.Error }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = Dialog.Show<MudDialog>("Konfirmasi Hapus", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result!.Canceled) // hanya hapus kalau user klik "Hapus"
+        {
+            var res = await Api.DeleteAsync(k.NIK);
+            if (res.IsSuccess)
+            {
+                Snackbar.Add("Deleted", Severity.Success);
+                _items.RemoveAll(x => x.NIK == k.NIK);
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add(res.ErrorMessage ?? $"Delete failed: {(int)res.StatusCode}", Severity.Error);
+            }
+        }
+    }
+}

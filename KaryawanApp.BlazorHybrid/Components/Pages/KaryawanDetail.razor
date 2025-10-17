@@ -1,0 +1,29 @@
+﻿@page "/karyawan/{Nik}"
+@using KaryawanApp.BlazorHybrid.Entity
+@inject KaryawanService Service
+@code {
+    [Parameter] public string Nik { get; set; } = string.Empty;
+    Karyawan data = new Karyawan();
+    protected override async Task OnParametersSetAsync()
+    {
+        var resGetData = await Service.GetDetails(Nik);
+        if (resGetData != null)
+        {
+            data.NIK = resGetData?.NIK;
+            data.Nama = resGetData?.Nama;
+            data.Divisi = resGetData?.Divisi;
+            data.Jabatan = resGetData?.Jabatan;
+            data.Alamat = resGetData?.Alamat;
+            data.Telp = resGetData?.Telp;
+        }
+         
+    }
+}
+<h3>Detail Karyawan</h3>
+<p>NIK: @data.NIK</p>
+<p>Nama: @data.Nama</p>
+<p>Divisi: @data.Divisi</p>
+<p>Jabatan: @data.Jabatan</p>
+<p>Alamat: @data.Alamat</p>
+<p>Telp: @data.Telp</p>
+

@@ -1,0 +1,44 @@
+@page "/karyawan/detail/{nik}"
+@* @rendermode InteractiveServer *@
+@using KaryawanBlazorApp.WebUI.Models
+@inject Services.KaryawanApiClient Api
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h5">Detail Karyawan</MudText>
+    @if (_model is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudStack Class="mt-4" Spacing="2">
+            <MudText><b>NIK:</b> @_model.NIK</MudText>
+            <MudText><b>Nama:</b> @_model.Nama</MudText>
+            <MudText><b>Divisi:</b> @_model.Divisi</MudText>
+            <MudText><b>Jabatan:</b> @_model.Jabatan</MudText>
+            <MudText><b>Alamat:</b> @_model.Alamat</MudText>
+            <MudText><b>Telp:</b> @_model.Telp</MudText>
+            <MudButton Variant="Variant.Outlined" OnClick="@(()=>Nav.NavigateTo("/karyawan"))">Back</MudButton>
+        </MudStack>
+    }
+</MudPaper>
+
+@code{
+    [Parameter] public string nik { get; set; } = string.Empty;
+    private Karyawan? _model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await Api.GetAsync(nik);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            _model = res.Data;
+        }
+        else
+        {
+            Snackbar.Add(res.ErrorMessage ?? $"Error: {(int)res.StatusCode}", Severity.Error);
+        }
+    }
+}

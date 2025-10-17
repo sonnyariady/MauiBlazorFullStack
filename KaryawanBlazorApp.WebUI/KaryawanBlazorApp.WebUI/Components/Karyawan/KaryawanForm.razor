@@ -1,0 +1,31 @@
+
+@using KaryawanBlazorApp.WebUI.Models
+@inherits ComponentBase
+@inject ISnackbar Snackbar
+
+<EditForm Model="@Model" OnValidSubmit="@OnSubmit">
+    <MudStack Spacing="2">
+        <MudTextField Label="NIK" @bind-Value="Model.NIK" Disabled="@DisableNik" Required="true" />
+        <MudTextField Label="Nama" @bind-Value="Model.Nama" Required="true" />
+        <MudTextField Label="Divisi" @bind-Value="Model.Divisi" />
+        <MudTextField Label="Jabatan" @bind-Value="Model.Jabatan" />
+        <MudTextField Label="Alamat" @bind-Value="Model.Alamat" />
+        <MudTextField Label="Telp" @bind-Value="Model.Telp" />
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit">Simpan</MudButton>
+            <MudButton Variant="Variant.Outlined" OnClick="OnCancel">Batal</MudButton>
+        </MudStack>
+    </MudStack>
+</EditForm>
+
+@code{
+    [Parameter] public Karyawan Model { get; set; } = new();
+    [Parameter] public bool DisableNik { get; set; } = false;
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback<Karyawan> OnSaved { get; set; }
+
+    private async Task OnSubmit()
+    {
+        await OnSaved.InvokeAsync(Model);
+    }
+}

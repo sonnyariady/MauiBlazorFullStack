@@ -1,0 +1,59 @@
+@page "/karyawan/edit/{nik}"
+@* @rendermode InteractiveServer *@
+@using KaryawanBlazorApp.WebUI.Models
+@inject Services.KaryawanApiClient Api
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h5">Ubah Karyawan</MudText>
+    @if (_model is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <KaryawanForm Model="_model" DisableNik="true" OnSaved="HandleSave" OnCancel="@(()=>Nav.NavigateTo("/karyawan"))" />
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public string nik { get; set; } = string.Empty;
+    private Karyawan? _model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await Api.GetAsync(nik);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            _model = res.Data;
+        }
+        else
+        {
+            Snackbar.Add(res.ErrorMessage ?? $"Error: {(int)res.StatusCode}", Severity.Error);
+        }
+    }
+
+    private async Task HandleSave(Karyawan m)
+    {
+        var payload = new KaryawanUpdate
+        {
+            Nama = m.Nama,
+            Divisi = m.Divisi,
+            Jabatan = m.Jabatan,
+            Alamat = m.Alamat,
+            Telp = m.Telp
+        };
+        var res = await Api.UpdateAsync(nik, payload);
+        if (res.IsSuccess)
+        {
+            Snackbar.Add("Berhasil ubah", Severity.Success);
+            await Task.Delay(200);
+            Nav.NavigateTo("/karyawan");
+        }
+        else
+        {
+            Snackbar.Add(res.ErrorMessage ?? $"Gagal ubah: {(int)res.StatusCode}", Severity.Error);
+        }
+    }
+}

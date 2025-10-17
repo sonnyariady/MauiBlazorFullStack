@@ -1,0 +1,30 @@
+@page "/karyawan/new"
+@* @rendermode InteractiveServer *@
+@using KaryawanBlazorApp.WebUI.Models
+@inject Services.KaryawanApiClient Api
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h5">Buat Karyawan</MudText>
+    <KaryawanForm Model="_model" DisableNik="false" OnSaved="HandleSave" OnCancel="@(()=>Nav.NavigateTo("/karyawan"))" />
+</MudPaper>
+
+@code {
+    private Karyawan _model = new();
+
+    private async Task HandleSave(Karyawan m)
+    {
+        var res = await Api.CreateAsync(m);
+        if (res.IsSuccess)
+        {
+            Snackbar.Add("Berhasil simpan", Severity.Success);
+            await Task.Delay(200);
+            Nav.NavigateTo("/karyawan");
+        }
+        else
+        {
+            Snackbar.Add(res.ErrorMessage ?? $"Gagal simpan: {(int)res.StatusCode}", Severity.Error);
+        }
+    }
+}
